@@ -1,7 +1,7 @@
 ## -----------------------------------------------------------------------------
 require(SDEtools)
 require(Matrix)
-set.seed(123456)  ## Fix the seed so that I know what the plot looks like :) 
+set.seed(1)  ## Fix the seed so that I know what the plot looks like :) 
 
 sigma <- 1
 T <- 10
