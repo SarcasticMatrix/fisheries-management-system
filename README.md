@@ -22,6 +22,12 @@ require(SDEtools)
     ## Loading required package: SDEtools
 
 ``` r
+require(latex2exp)
+```
+
+    ## Loading required package: latex2exp
+
+``` r
 sigma <- 1
 T <- 10
 
@@ -48,7 +54,7 @@ J.ch <- mean(sqrt(0.5*sol.opt))
 
 plot(tvec, sol.opt[,2], type="l", xlab="t", ylab="X", col="blue", lty=1, ylim=range(c(sol.opt[,2], sol.ch[,2])))
 lines(tvec, sol.ch[,2], col="red", lty=1)
-legend("topright", legend=c("sol.opt", "sol.ch"), col=c("blue", "red"), lty=c(1,1))
+legend("topright", legend=c("Optimal control", TeX("Constant harvesting $X_t/2$")), col=c("blue", "red"), lty=c(1,1))
 ```
 
 ![](README_files/figure-markdown_github/unnamed-chunk-1-1.png)
