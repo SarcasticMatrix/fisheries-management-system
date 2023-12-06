@@ -1,25 +1,17 @@
 ## Fisheries as optimal control
 
-We consider the problem of optimal harvest of a fish stock. Our
-objective in this vignette is to demonstrate the numerical solution of
-the optimal control problem. The controlled system dynamics are,
-*d**X*<sub>*t*</sub> = \[*X*<sub>*t*</sub>(1−*X*<sub>*t*</sub>)−*U*<sub>*t*</sub>\]*d**t* + *σ**X*<sub>*t*</sub>*d**B*<sub>*t*</sub>
-Here, *X*<sub>*t*</sub> is the biomass, and *B*<sub>*t*</sub> is
-standard Brownian motion. The term
-*X*<sub>*t*</sub>(1−*X*<sub>*t*</sub>) is the growth without fishing,
-i.e. logistic growth; we have made time and abundance dimensionless.
-*U*<sub>*t*</sub> is the harvest rate. We aim to maximize $\sqrt{U\_t}$
-in steady state, which leads to the Hamilton-Jacobi-Bellman equation
+WWe consider the problem of optimal harvest of a fish stock. Our objective in this vignette is to demonstrate the numerical solution of the optimal control problem. The controlled system dynamics are, 
+$$dX_t = [ X_t(1-X_t) - U_t] dt + \sigma X_t dB_t$$
+Here, $X_t$ is the biomass, and $B_t$ is standard Brownian motion. The term $X_t(1-X_t)$ is the growth without fishing, i.e. logistic growth; we have made time and abundance dimensionless. $U_t$ is the harvest rate. We aim to maximize $\sqrt{U_t}$ in steady state, which leads to the Hamilton-Jacobi-Bellman equation
 
-$$\sup\_{u\geq 0} \left\[ \dot V + x(1-x) V' - uV' + \frac 12 \sigma^2 x^2 V'' + \sqrt u \right\] = 0.$$
+$$\sup_{u\geq 0} \left[ \dot V + x(1-x) V' - uV' + \frac 12 \sigma^2 x^2 V'' + \sqrt u \right] = 0.$$
 
-The optimal control is found as a stationary point:
-*u* = 1/4/(*V*′)<sup>2</sup>.
+The optimal control is found as a stationary point: $u= 1/4/(V')^2$.
 
 The analytical steady-state solution to this problem is,
 $$V(x,t) = \frac 12 \log x -\gamma t$$
 where $\gamma = \frac 12 (1-\sigma^2 /2)$. This leads to the strategy
-*U*<sub>*t*</sub> = *X*<sub>*t*</sub><sup>2</sup>.
+$$U_t = X_t^2.$$
 
 ## Numerical analysis of the steady-state problem
 
