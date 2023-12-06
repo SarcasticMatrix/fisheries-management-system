@@ -4,7 +4,7 @@ author: "Théophile SCHMUTZ"
 date: "`r Sys.Date()`"
 output: 
   md_document:
-    variant: markdown_github
+    #variant: markdown_github
 ---
 
 ## Fisheries as optimal control

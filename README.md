@@ -10,7 +10,7 @@ Here, *X*<sub>*t*</sub> is the biomass, and *B*<sub>*t*</sub> is
 standard Brownian motion. The term
 *X*<sub>*t*</sub>(1−*X*<sub>*t*</sub>) is the growth without fishing,
 i.e. logistic growth; we have made time and abundance dimensionless.
-*U*<sub>*t*</sub> is the harvest rate. We aim to maximize $\sqrt{U_t}$
+*U*<sub>*t*</sub> is the harvest rate. We aim to maximize $\sqrt{U\_t}$
 in steady state, which leads to the Hamilton-Jacobi-Bellman equation
 
 $$
@@ -34,53 +34,41 @@ the model, writing it in advection-diffusion form. We use
 *D* = *g*<sup>2</sup>/2 as the diffusivity and *v* = *f* − *D*′ as the
 advective field.
 
-``` r
-require(SDEtools)
-```
+    require(SDEtools)
 
     ## Loading required package: SDEtools
 
-``` r
-sigma <- 0.5
+    sigma <- 0.5
 
-f <- function(x) x*(1-x)
-g <- function(x) sigma*x
+    f <- function(x) x*(1-x)
+    g <- function(x) sigma*x
 
-dg <- function(x) sigma
-D <- function(x) 0.5*g(x)^2
-dD <- function(x) g(x)*dg(x)
-v <- function(x) f(x) - dD(x)
-```
+    dg <- function(x) sigma
+    D <- function(x) 0.5*g(x)^2
+    dD <- function(x) g(x)*dg(x)
+    v <- function(x) f(x) - dD(x)
 
 The following function gives the optimal control as a function of *x*
 and *V*′(*x*):
 
-``` r
-mu <- function(x,Vp) 0.25/Vp^2
-```
+    mu <- function(x,Vp) 0.25/Vp^2
 
 We now discretize the problem. We use a grid which is more dense near
 the origin.
 
-``` r
-Xmax <- 4
-xi <- seq(0,sqrt(Xmax),length=101)^2    # Interfaces between grid cells
-xc <- 0.5*(head(xi,-1)+tail(xi,-1))     # Center of grid cells
-```
+    Xmax <- 4
+    xi <- seq(0,sqrt(Xmax),length=101)^2    # Interfaces between grid cells
+    xc <- 0.5*(head(xi,-1)+tail(xi,-1))     # Center of grid cells
 
 We first define the generator without fishing:
 
-``` r
-G0 <- fvade(v,D,xi,'r')
-```
+    G0 <- fvade(v,D,xi,'r')
 
     ## Loading required package: Matrix
 
 and next the generator corresponding to fishing:
 
-``` r
-G1 <- fvade(function(x)-1,function(x)0,xi,'r')
-```
+    G1 <- fvade(function(x)-1,function(x)0,xi,'r')
 
 Note that this discretizes the operator *V* ↦  − *V*′.
 
@@ -92,46 +80,36 @@ crazy on fish that aren’t there. Next, we assume that there is a bound
 on the harvest, even if *V*′(*x*) = 0. We do that by replacing *V*′(*x*)
 with max (*ϵ*,*V*′(*x*)) where *ϵ* is a “small” number.
 
-``` r
-epsilon <- 1e-1
-uopt <- function(G1V) 
-  {
-     u <- mu(xc,pmax(epsilon,-G1V))
-     u[1] <- 0
-     return(u)
-  }
-```
+    epsilon <- 1e-1
+    uopt <- function(G1V) 
+      {
+         u <- mu(xc,pmax(epsilon,-G1V))
+         u[1] <- 0
+         return(u)
+      }
 
 Finally, we need the pay-off:
 
-``` r
-  k <- function(u) sqrt(u)
-```
+      k <- function(u) sqrt(u)
 
 We can now solve the steady-state problem using policy iteration:
 
-``` r
-  sol <- PolicyIterationSingular(G0,G1,k,uopt,do.minimize=FALSE)
-```
+      sol <- PolicyIterationSingular(G0,G1,k,uopt,do.minimize=FALSE)
 
 We plot the policy and the value function compared with the analytical
 results:
 
-``` r
-  plot(xc,sol$V,type="l",xlab="x",ylab=expression(V(x)))
-  lines(xc,0.5*log(xc) - 0.5*log(xc[50]) + sol$V[50])
-```
+      plot(xc,sol$V,type="l",xlab="x",ylab=expression(V(x)))
+      lines(xc,0.5*log(xc) - 0.5*log(xc[50]) + sol$V[50])
 
-![](README_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](README_files/figure-markdown_strict/unnamed-chunk-9-1.png)
 
 Note the excellent agreement. Similarly, for the control:
 
-``` r
-  plot(xc,sol$u,type="l",xlab="x",ylab=expression(mu(x)))
-  lines(xc,xc^2,lty="dashed")
-```
+      plot(xc,sol$u,type="l",xlab="x",ylab=expression(mu(x)))
+      lines(xc,xc^2,lty="dashed")
 
-![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](README_files/figure-markdown_strict/unnamed-chunk-10-1.png)
 
 Note that there is some discrepancy at the upper boundary, where the
 discretized problem fishes really hard to avoid the risk of hitting the
@@ -140,11 +118,9 @@ boundary, which would be wasteful.
 We finally plot the stationary distribution of the state under the
 time-invariant control.
 
-``` r
-  plot(xc,sol$pi,type="l",xlab="x",ylab="p.d.f.")
-```
+      plot(xc,sol$pi,type="l",xlab="x",ylab="p.d.f.")
 
-![](README_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](README_files/figure-markdown_strict/unnamed-chunk-11-1.png)
 
 ## The time-varying problem
 
@@ -159,15 +135,13 @@ corresponds to the state, while the column index corresponds to the
 time. We fill in the last column of *V* with the terminal condition,
 which we take to be all 0.
 
-``` r
-T <- 10
-dt <- 1
+    T <- 10
+    dt <- 1
 
-tv <- seq(0,T,dt)
+    tv <- seq(0,T,dt)
 
-V <- U <- array(NA,c(length(xc),length(tv)))
-V[,length(tv)] <- 0
-```
+    V <- U <- array(NA,c(length(xc),length(tv)))
+    V[,length(tv)] <- 0
 
 The backward iteration works in two steps: First, we use *V*(⋅,*t*) to
 identify the optimal control *μ*(*x*). This is specific to the current
@@ -193,24 +167,22 @@ $$
 We solve this system using the matrix exponential. The top half elements
 is the solution at the previous time step.
 
-``` r
-OO <- sparseMatrix(i=numeric(0),j=numeric(0),x=0,dims=c(length(xc),2*length(xc)))
+    OO <- sparseMatrix(i=numeric(0),j=numeric(0),x=0,dims=c(length(xc),2*length(xc)))
 
-for(i in length(tv):2)
-{
-  ## Find optimal control strategy
-  u <- uopt(G1 %*% V[,i])
-  U[,i-1] <- u
-  
-  ## Construct the "closed loop" system that results from applying this control strategy
-  Gcl <- G0 + Diagonal(x=u) %*% G1
-  
-  GG <- rbind(cbind(Gcl,Diagonal(n=length(xc),x=1)),OO)
-  Vkterm <- c(V[,i],k(u))
-  Vksol <- expm(GG*dt) %*% Vkterm
-  V[,i-1] <- Vksol[1:length(xc)]
-}
-```
+    for(i in length(tv):2)
+    {
+      ## Find optimal control strategy
+      u <- uopt(G1 %*% V[,i])
+      U[,i-1] <- u
+      
+      ## Construct the "closed loop" system that results from applying this control strategy
+      Gcl <- G0 + Diagonal(x=u) %*% G1
+      
+      GG <- rbind(cbind(Gcl,Diagonal(n=length(xc),x=1)),OO)
+      Vkterm <- c(V[,i],k(u))
+      Vksol <- expm(GG*dt) %*% Vkterm
+      V[,i-1] <- Vksol[1:length(xc)]
+    }
 
 The following plot shows the value function at the various points in
 time. Notice that it quite quickly seems to enter a steady state where
@@ -221,23 +193,19 @@ the controlled process. The shift corresponds to *γ*, the pay-off rate
 in steady state. The red line is the analytical result from the
 steady-state problem.
 
-``` r
-matplot(xc,V,type="l",col=1,lty=1,xlab="x")
-lines(xc,0.5*log(xc)-0.5*log(xc[50])+V[50,1],lty="dashed",col="red")
-```
+    matplot(xc,V,type="l",col=1,lty=1,xlab="x")
+    lines(xc,0.5*log(xc)-0.5*log(xc[50])+V[50,1],lty="dashed",col="red")
 
-![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)
+![](README_files/figure-markdown_strict/unnamed-chunk-14-1.png)
 
 The following contour plot shows the optimal control as a function of
 time and state. Note that we fish hard when we are close to the terminal
 time, since this problem does not include a terminal reward for leaving
 fish in the system at the end of time.
 
-``` r
-contour(tv,xc,t(U),levels=seq(0,3,0.25)^2,xlab="t",ylab="x")
-```
+    contour(tv,xc,t(U),levels=seq(0,3,0.25)^2,xlab="t",ylab="x")
 
-![](README_files/figure-markdown_github/unnamed-chunk-15-1.png)
+![](README_files/figure-markdown_strict/unnamed-chunk-15-1.png)
 
 ## Implicit Euler time stepping
 
@@ -247,40 +215,34 @@ Euler to time step the HJB equation rather than the matrix exponential.
 The equation is time discretized as
 
 $$
-\frac 1h (V_t - V\_{t-h} ) + G\_{cl} V\_{t-h} + k = 0
+\frac 1h (V\_t - V\_{t-h} ) + G\_{cl} V\_{t-h} + k = 0
 $$
 
 i.e.,
 
 *V*<sub>*t* − *h*</sub> = (*I*−*G*<sub>*c**l*</sub>*h*)<sup>−1</sup>(*V*<sub>*t*</sub>+*h**k*)
 
-``` r
-for(i in length(tv):2)
-{
-  ## Find optimal control strategy
-  u <- uopt(G1 %*% V[,i])
-  U[,i-1] <- u
-  
-  ## Construct the "closed loop" system that results from applying this control strategy
-  Gcl <- G0 + Diagonal(x=u) %*% G1
-  
-  V[,i-1] <- as.numeric(solve(Diagonal(n=length(xc),x=1) - Gcl*dt,V[,i] + dt*k(u)))
-}
-```
+    for(i in length(tv):2)
+    {
+      ## Find optimal control strategy
+      u <- uopt(G1 %*% V[,i])
+      U[,i-1] <- u
+      
+      ## Construct the "closed loop" system that results from applying this control strategy
+      Gcl <- G0 + Diagonal(x=u) %*% G1
+      
+      V[,i-1] <- as.numeric(solve(Diagonal(n=length(xc),x=1) - Gcl*dt,V[,i] + dt*k(u)))
+    }
 
 We repeat the two previous plots. Note that the transients are slightly
 different due to the coarse time step, but that the steady state is the
 same.
 
-``` r
-matplot(xc,V,type="l",col=1,lty=1,xlab="x")
-lines(xc,0.5*log(xc)-0.5*log(xc[50])+V[50,1],lty="dashed",col="red")
-```
+    matplot(xc,V,type="l",col=1,lty=1,xlab="x")
+    lines(xc,0.5*log(xc)-0.5*log(xc[50])+V[50,1],lty="dashed",col="red")
 
-![](README_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](README_files/figure-markdown_strict/unnamed-chunk-17-1.png)
 
-``` r
-contour(tv,xc,t(U),levels=seq(0,3,0.25)^2,xlab="t",ylab="x")
-```
+    contour(tv,xc,t(U),levels=seq(0,3,0.25)^2,xlab="t",ylab="x")
 
-![](README_files/figure-markdown_github/unnamed-chunk-18-1.png)
+![](README_files/figure-markdown_strict/unnamed-chunk-18-1.png)
