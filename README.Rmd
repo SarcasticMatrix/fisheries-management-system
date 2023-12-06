@@ -22,6 +22,41 @@ $$V(x,t) = \frac 12 \log x -\gamma t$$
 where $\gamma = \frac 12 (1-\sigma^2 /2)$. This leads to the strategy
 $$U_t = X_t^2.$$
 
+## Optimal policy versus constant harvesting
+
+```{r}
+require(SDEtools)
+
+sigma <- 1
+T <- 10
+
+dt <- 0.01
+tvec <- seq(0,T,dt)
+x0 <- 0.1
+
+fopt <- function(x) x*(1-x) - x^2
+fch <- function(x) x*(1-x) - 0.5*x
+
+g <- function(x) sigma*x
+
+## Number of realizations
+M <- 100
+
+## Generate noise for all realizations 
+B <- rvBM(tvec,n=M)
+
+sol.opt <- sapply(1:M,function(i)euler(fopt,g,tvec,x0,B=B[,i],p=abs)$X)
+sol.ch <-  sapply(1:M, function(i)euler(fch,g,tvec,x0,B=B[,i],p=abs)$X)
+
+J.opt <- mean(sqrt(sol.opt^2))
+J.ch <- mean(sqrt(0.5*sol.opt))
+
+plot(tvec, sol.opt[,2], type="l", xlab="t", ylab="X", col="blue", lty=1, ylim=range(c(sol.opt[,2], sol.ch[,2])))
+lines(tvec, sol.ch[,2], col="red", lty=1)
+legend("topright", legend=c("sol.opt", "sol.ch"), col=c("blue", "red"), lty=c(1,1))
+```
+
+
 
 ## Numerical analysis of the steady-state problem
 
@@ -29,8 +64,6 @@ We aim to verify the analytical solution numerically. We first set up the model,
 
 
 ```{r}
-require(SDEtools)
-
 sigma <- 0.5
 
 f <- function(x) x*(1-x)

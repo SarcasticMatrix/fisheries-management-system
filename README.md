@@ -13,18 +13,52 @@ $$V(x,t) = \frac 12 \log x -\gamma t$$
 where $\gamma = \frac 12 (1-\sigma^2 /2)$. This leads to the strategy
 $$U_t = X_t^2.$$
 
-## Numerical analysis of the steady-state problem
-
-We aim to verify the analytical solution numerically. We first set up
-the model, writing it in advection-diffusion form. We use
-*D* = *g*<sup>2</sup>/2 as the diffusivity and *v* = *f* − *D*′ as the
-advective field.
+## Optimal policy versus constant harvesting
 
 ``` r
 require(SDEtools)
 ```
 
     ## Loading required package: SDEtools
+
+``` r
+sigma <- 1
+T <- 10
+
+dt <- 0.01
+tvec <- seq(0,T,dt)
+x0 <- 0.1
+
+fopt <- function(x) x*(1-x) - x^2
+fch <- function(x) x*(1-x) - 0.5*x
+
+g <- function(x) sigma*x
+
+## Number of realizations
+M <- 100
+
+## Generate noise for all realizations 
+B <- rvBM(tvec,n=M)
+
+sol.opt <- sapply(1:M,function(i)euler(fopt,g,tvec,x0,B=B[,i],p=abs)$X)
+sol.ch <-  sapply(1:M, function(i)euler(fch,g,tvec,x0,B=B[,i],p=abs)$X)
+
+J.opt <- mean(sqrt(sol.opt^2))
+J.ch <- mean(sqrt(0.5*sol.opt))
+
+plot(tvec, sol.opt[,2], type="l", xlab="t", ylab="X", col="blue", lty=1, ylim=range(c(sol.opt[,2], sol.ch[,2])))
+lines(tvec, sol.ch[,2], col="red", lty=1)
+legend("topright", legend=c("sol.opt", "sol.ch"), col=c("blue", "red"), lty=c(1,1))
+```
+
+![](README_files/figure-markdown_github/unnamed-chunk-1-1.png)
+
+## Numerical analysis of the steady-state problem
+
+We aim to verify the analytical solution numerically. We first set up
+the model, writing it in advection-diffusion form. We use
+*D* = *g*<sup>2</sup>/2 as the diffusivity and *v* = *f* − *D*′ as the
+advective field.
 
 ``` r
 sigma <- 0.5
@@ -108,7 +142,7 @@ results:
   lines(xc,0.5*log(xc) - 0.5*log(xc[50]) + sol$V[50])
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
 Note the excellent agreement. Similarly, for the control:
 
@@ -117,7 +151,7 @@ Note the excellent agreement. Similarly, for the control:
   lines(xc,xc^2,lty="dashed")
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-10-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-11-1.png)
 
 Note that there is some discrepancy at the upper boundary, where the
 discretized problem fishes really hard to avoid the risk of hitting the
@@ -130,7 +164,7 @@ time-invariant control.
   plot(xc,sol$pi,type="l",xlab="x",ylab="p.d.f.")
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-11-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-12-1.png)
 
 ## The time-varying problem
 
@@ -208,7 +242,7 @@ matplot(xc,V,type="l",col=1,lty=1,xlab="x")
 lines(xc,0.5*log(xc)-0.5*log(xc[50])+V[50,1],lty="dashed",col="red")
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-14-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-15-1.png)
 
 The following contour plot shows the optimal control as a function of
 time and state. Note that we fish hard when we are close to the terminal
@@ -219,7 +253,7 @@ fish in the system at the end of time.
 contour(tv,xc,t(U),levels=seq(0,3,0.25)^2,xlab="t",ylab="x")
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-15-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-16-1.png)
 
 ## Implicit Euler time stepping
 
@@ -257,10 +291,10 @@ matplot(xc,V,type="l",col=1,lty=1,xlab="x")
 lines(xc,0.5*log(xc)-0.5*log(xc[50])+V[50,1],lty="dashed",col="red")
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-17-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-18-1.png)
 
 ``` r
 contour(tv,xc,t(U),levels=seq(0,3,0.25)^2,xlab="t",ylab="x")
 ```
 
-![](README_files/figure-markdown_github/unnamed-chunk-18-1.png)
+![](README_files/figure-markdown_github/unnamed-chunk-19-1.png)

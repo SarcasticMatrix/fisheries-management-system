@@ -30,8 +30,9 @@ J.ch <- mean(sqrt(0.5*sol.opt))
 
 ## -----------------------------------------------------------------------------
 x11()
-matplot(tvec,cbind(sol.opt[,2],sol.ch[,2]),type="l",xlab="t",ylab="X")
-
+plot(tvec, sol.opt[,2], type="l", xlab="t", ylab="X", col="blue", lty=1, ylim=range(c(sol.opt[,2], sol.ch[,2])))
+lines(tvec, sol.ch[,2], col="red", lty=1)
+legend("topright", legend=c("sol.opt", "sol.ch"), col=c("blue", "red"), lty=c(1,1))
 
 ## -----------------------------------------------------------------------------
 print(c(J.opt,J.ch))
