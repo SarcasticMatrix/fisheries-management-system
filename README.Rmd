@@ -4,33 +4,23 @@ author: "Théophile SCHMUTZ"
 date: "`r Sys.Date()`"
 output: 
   md_document:
-    #variant: markdown_github
+    variant: markdown_github
 ---
 
 ## Fisheries as optimal control
 
-We consider the problem of optimal harvest of a fish stock. Our objective in this vignette is to demonstrate the numerical solution of the optimal control problem. The controlled system dynamics are 
-
-\[
-dX_t = [ X_t(1-X_t) - U_t] ~dt + \sigma X_t ~dB_t
-\]
-
+We consider the problem of optimal harvest of a fish stock. Our objective in this vignette is to demonstrate the numerical solution of the optimal control problem. The controlled system dynamics are, 
+$$ dX_t = [ X_t(1-X_t) - U_t] dt + \sigma X_t dB_t$$
 Here, $X_t$ is the biomass, and $B_t$ is standard Brownian motion. The term $X_t(1-X_t)$ is the growth without fishing, i.e. logistic growth; we have made time and abundance dimensionless. $U_t$ is the harvest rate. We aim to maximize $\sqrt{U_t}$ in steady state, which leads to the Hamilton-Jacobi-Bellman equation
 
-\[
-\sup_{u\geq 0} \left[ \dot V + x(1-x) V' - uV' + \frac 12 \sigma^2 x^2 V'' + \sqrt u \right] = 0 . 
-\]
+$$ \sup_{u\geq 0} \left[ \dot V + x(1-x) V' - uV' + \frac 12 \sigma^2 x^2 V'' + \sqrt u \right] = 0.$$
 
 The optimal control is found as a stationary point: $u= 1/4/(V')^2$.
 
 The analytical steady-state solution to this problem is,
-\[
-  V(x,t) = \frac 12 \log x -\gamma t
-\]
+$$V(x,t) = \frac 12 \log x -\gamma t$$
 where $\gamma = \frac 12 (1-\sigma^2 /2)$. This leads to the strategy
-\[
-U_t = X_t^2 . 
-\]
+$$U_t = X_t^2.$$
 
 
 ## Numerical analysis of the steady-state problem
@@ -143,19 +133,13 @@ V[,length(tv)] <- 0
 ```
 
 The backward iteration works in two steps: First, we use $V(\cdot,t)$ to identify the optimal control $\mu(x)$. This is specific to the current time step but our notation suppresses this. Next, we assume that this control strategy is applied during the preceding time interval. To this end, we write the equation in the value function as 
-\[
-\dot V + G_{cl}V + k = 0
-\]
+$$\dot V + G_{cl}V + k = 0$$
 where $G_{cl}$ is the closed loop generator, and $k$ is the running reward with the current control strategy. For our example, $G_{cl}$ discretizes the operator
-\[
-x(1-x)V' - \mu(x)V' + \frac 12 \sigma^2 V'' 
-\]
+$$x(1-x)V' - \mu(x)V' + \frac 12 \sigma^2 V''$$
 where $\mu(x)$ is fixed. Similarly, $k$ is a vector that evaluates $\sqrt{\mu(x)}$. 
 
 To solve this equation exactly, i.e., without time discretization error, we write it as a coupled system $\dot k = 0$ and solve the combined system. Let $Z = (V,k)$, then 
-\[
-- \dot Z = \left[ \begin{array}{cc} G_{cl} & I \\ 0 & 0 \end{array} \right] Z
-\]
+$$- \dot Z = \left[ \begin{array}{cc} G_{cl} & I \\ 0 & 0 \end{array} \right] Z$$
 We solve this system using the matrix exponential. The top half elements is the solution at the previous time step.
 
 ```{r}
@@ -194,15 +178,11 @@ contour(tv,xc,t(U),levels=seq(0,3,0.25)^2,xlab="t",ylab="x")
 
 The matrix exponential in the previous is expensive for large problems. So therefore we give here a variant of the code which uses implicit Euler to time step the HJB equation rather than the matrix exponential. The equation is time discretized as 
 
-\[
-\frac 1h (V_t - V_{t-h} ) + G_{cl} V_{t-h} + k = 0
-\]
+$$\frac 1h (V_t - V_{t-h} ) + G_{cl} V_{t-h} + k = 0$$
 
 i.e., 
 
-\[
-  V_{t-h} = (I - G_{cl} h)^{-1} (V_t + hk)
-\]
+$$V_{t-h} = (I - G_{cl} h)^{-1} (V_t + hk)$$
 
 ```{r}
 for(i in length(tv):2)
